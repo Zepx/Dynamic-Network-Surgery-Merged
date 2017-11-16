@@ -1,30 +1,62 @@
-# Caffe
+# Dynamic network surgery
 
-Caffe is a deep learning framework made with expression, speed, and modularity in mind.
-It is developed by the Berkeley Vision and Learning Center ([BVLC](http://bvlc.eecs.berkeley.edu)) and community contributors.
+Dynamic network surgery is a very effective method for DNN pruning. To better use it with python and matlab, you may also need a [classic version](https://github.com/BVLC/caffe/tree/aa2a6f55b9e50b29d607aaee0fae19bd085d6565) of the [Caffe framework](http://caffe.berkeleyvision.org).
+For the convolutional and fully-connected layers to be pruned, change their layer types to "CConvolution" and "CInnerProduct" respectively. Then, pass "cconvolution_param" and "cinner_product_param" messages to these modified layers for better pruning performance. 
 
-Check out the [project site](http://caffe.berkeleyvision.org) for all the details like
+# Example for usage
 
-- [DIY Deep Learning for Vision with Caffe](https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.p)
-- [Tutorial Documentation](http://caffe.berkeleyvision.org/tutorial/)
-- [BVLC reference models](http://caffe.berkeleyvision.org/model_zoo.html) and the [community model zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo)
-- [Installation instructions](http://caffe.berkeleyvision.org/installation.html)
+Below is an example for pruning the "ip1" layer in LeNet5:
 
-and step-by-step examples.
+    layer {
 
-[![Join the chat at https://gitter.im/BVLC/caffe](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/BVLC/caffe?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+    layer {
+      name: "ip1"
+      type: "CInnerProduct"
+      bottom: "pool2"
+      top: "ip1"
+      param {
+        lr_mult: 1
+      }
+      param {
+        lr_mult: 2
+      }
+      inner_product_param {
+        num_output: 500
+        weight_filler {
+          type: "xavier"
+        }
+        bias_filler {
+          type: "constant"
+        }
+      }
+      cinner_product_param {
+        dgamma: 0.0001
+        power: 1
+        c_rate: 4
+        iter_stop: 14000  
+        weight_mask_filler {
+          type: "constant"
+          value: 1
+        }
+        bias_mask_filler {
+          type: "constant"
+          value: 1
+        }        
+      }   
+    }
 
-Please join the [caffe-users group](https://groups.google.com/forum/#!forum/caffe-users) or [gitter chat](https://gitter.im/BVLC/caffe) to ask questions and talk about methods and models.
-Framework development discussions and thorough bug reports are collected on [Issues](https://github.com/BVLC/caffe/issues).
+# Citation
 
-Happy brewing!
+Please cite our work in your publications if it helps your research:
 
-## License and Citation
-
-Caffe is released under the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE).
-The BVLC reference models are released for unrestricted use.
-
-Please cite Caffe in your publications if it helps your research:
+    @inproceedings{guo2016dynamic,		
+      title = {Dynamic Network Surgery for Efficient DNNs},
+      author = {Guo, Yiwen and Yao, Anbang and Chen, Yurong},
+      booktitle = {Advances in neural information processing systems (NIPS)},
+      year = {2016}
+    } 
+		
+and	do not forget about Caffe:	
 
     @article{jia2014caffe,
       Author = {Jia, Yangqing and Shelhamer, Evan and Donahue, Jeff and Karayev, Sergey and Long, Jonathan and Girshick, Ross and Guadarrama, Sergio and Darrell, Trevor},
@@ -32,3 +64,5 @@ Please cite Caffe in your publications if it helps your research:
       Title = {Caffe: Convolutional Architecture for Fast Feature Embedding},
       Year = {2014}
     }
+
+Enjoy your own surgeries!
