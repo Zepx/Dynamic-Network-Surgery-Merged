@@ -293,6 +293,7 @@ class Net {
    */
   vector<int> learnable_param_ids_;
   /// the index of mask parameters
+  vector<int> mask_param_ids_; 
   /// the learning rate multipliers for learnable_params_
   vector<float> params_lr_;
   vector<bool> has_params_lr_;
